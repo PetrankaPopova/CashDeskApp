@@ -158,16 +158,8 @@ public class CashOperationServiceImpl implements OperationService {
     }
 
     private void validateBanknotesDenomination(CashOperationDTO cashOperationDTO) {
-        //Integer i = denominations.getDenominations().get(cashOperationDTO.getCurrency().name());
-        Integer i1 = cashOperationDTO.getDenomination().get(cashOperationDTO.getCurrency().name());
-        System.out.println(i1);
         Map<Integer, Integer> currentOperationDenominations = cashOperationDTO.getDenomination();
-
-        for (Integer banknote : currentOperationDenominations.keySet()) {
-           /* if (!i.contains(banknote)) {
-                throw new InvalidBanknoteDenominationException("Invalid banknote denomination: " + banknote + " does not exist for currency: " + cashOperationDTO.getCurrency().name());
-            }*/
-        }
+        //todo
     }
 
     private Map<Currency, CashBalanceCurrency> createInitialBalances() {

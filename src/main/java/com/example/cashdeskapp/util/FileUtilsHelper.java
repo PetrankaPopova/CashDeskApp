@@ -8,7 +8,7 @@ import com.google.gson.JsonSyntaxException;
 
 import java.io.*;
 import java.time.LocalDateTime;
-import java.util.Stack;
+
 
 public class FileUtilsHelper  {
 
@@ -80,10 +80,8 @@ public class FileUtilsHelper  {
                 pointer--;
             }
 
-            // Reverse the captured JSON bytes to reconstruct the JSON string
             String json = new StringBuilder(jsonBytes.toString("UTF-8")).reverse().toString().trim();
 
-            // Parse JSON string to CashBalanceDTO object
             return gson.fromJson(json, CashBalanceDTO.class);
         } catch (JsonSyntaxException e) {
             throw new IOException("Error reading from file or parsing JSON: " + CASH_BALANCES_FILE, e);

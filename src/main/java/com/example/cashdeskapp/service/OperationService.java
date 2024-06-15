@@ -12,5 +12,5 @@ public interface OperationService {
 
     CashBalanceDTO retrieveCashBalance() throws IOException;
 
-    public CashOperationDTO performCashOperation(CashOperationDTO cashOperationDTO) throws IOException;
+    CashOperationDTO performCashOperation(CashOperationDTO cashOperationDTO) throws IOException;
 }
