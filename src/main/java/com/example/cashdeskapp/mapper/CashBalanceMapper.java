@@ -8,5 +8,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Mapper(componentModel = "spring")
 public interface CashBalanceMapper {
+    CashBalance toCashBalance(CashBalanceDTO cashBalanceDTO);
+
     CashBalanceDTO toCashBalanceDTO(CashBalance cashBalance);
 }
