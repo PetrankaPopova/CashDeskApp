@@ -13,6 +13,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,39 +21,31 @@ import java.util.List;
 
 @ControllerAdvice
 public class CashDeskErrorHandler {
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<List<String>> handleValidationExceptions(MethodArgumentNotValidException validationException) {
-        List<String> validationErrors = new ArrayList<>();
-        for (FieldError fieldError : validationException.getBindingResult().getFieldErrors()) {
-            validationErrors.add(fieldError.getDefaultMessage());
-        }
-        return new ResponseEntity<>(validationErrors, HttpStatus.BAD_REQUEST);
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<List<String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        List<String> errors = new ArrayList<>();
+        ex.getBindingResult().getFieldErrors().forEach(error -> errors.add(error.getDefaultMessage()));
+        return ResponseEntity.badRequest().body(errors);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<String> handleHttpMessageNotReadableException(HttpMessageNotReadableException messageNotReadableException) {
-        String errorMessage = "Invalid JSON format. Please check your input.";
-        return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<String> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+        return ResponseEntity.badRequest().body("Invalid JSON format. Please check your input.");
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException illegalArgumentException) {
-        return new ResponseEntity<>(illegalArgumentException.getMessage(), HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(InvalidBanknoteQuantityException.class)
-    public ResponseEntity<String> handleInvalidBanknoteQuantityException(InvalidBanknoteQuantityException quantityException) {
-        return new ResponseEntity<>(quantityException.getMessage(), HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(InvalidBanknoteDenominationException.class)
-    public ResponseEntity<String> handleInvalidBanknoteDenominationException(InvalidBanknoteDenominationException denominationException) {
-        return new ResponseEntity<>(denominationException.getMessage(), HttpStatus.BAD_REQUEST);
+    @ExceptionHandler({IllegalArgumentException.class, InvalidBanknoteQuantityException.class,
+            InvalidBanknoteDenominationException.class})
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<String> handleIllegalArgumentException(RuntimeException ex) {
+        return ResponseEntity.badRequest().body(ex.getMessage());
     }
 
     @ExceptionHandler(ApiKeyInvalidException.class)
-    public ResponseEntity<String> handleInvalidApiKeyException(ApiKeyInvalidException apiKeyInvalidException) {
-        return new ResponseEntity<>(apiKeyInvalidException.getMessage(), HttpStatus.UNAUTHORIZED);
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ResponseEntity<String> handleInvalidApiKeyException(ApiKeyInvalidException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
     }
-
 }
