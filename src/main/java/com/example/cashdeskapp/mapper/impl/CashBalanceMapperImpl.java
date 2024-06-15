@@ -34,6 +34,7 @@ public class CashBalanceMapperImpl implements CashBalanceMapper {
             CashBalanceCurrency cashBalanceCurrency = entry.getValue();
             CashBalanceCurrencyDTO currencyDTO = new CashBalanceCurrencyDTO();
             currencyDTO.setTotalBalance(cashBalanceCurrency.getTotalBalance());
+            currencyDTO.setDenomination(new HashMap<>(cashBalanceCurrency.getDenomination()));
             balanceDTO.put(currency, currencyDTO);
         }
 
