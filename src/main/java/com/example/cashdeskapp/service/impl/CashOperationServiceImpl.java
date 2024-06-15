@@ -29,6 +29,9 @@ public class CashOperationServiceImpl implements OperationService {
     private final String apiKey;
     private final CashBalanceMapper cashBalanceMapper;
     private final BanknotesDenominationsConfiguration denominations;
+    private static final int[] ALLOWED_BGN_DENOMINATIONS = {5, 10, 20, 50, 100};
+    private static final int[] ALLOWED_EUR_DENOMINATIONS = {5, 10, 20, 50, 100, 200, 500};
+
 
     @Autowired
     public CashOperationServiceImpl(CashBalanceMapper cashBalanceMapper,
@@ -158,8 +161,33 @@ public class CashOperationServiceImpl implements OperationService {
     }
 
     private void validateBanknotesDenomination(CashOperationDTO cashOperationDTO) {
+        String currency = String.valueOf(cashOperationDTO.getCurrency());
         Map<Integer, Integer> currentOperationDenominations = cashOperationDTO.getDenomination();
-        //todo
+
+        int[] allowedDenominations = null;
+        if ("BGN".equals(currency)) {
+            allowedDenominations = ALLOWED_BGN_DENOMINATIONS;
+        } else if ("EUR".equals(currency)) {
+            allowedDenominations = ALLOWED_EUR_DENOMINATIONS;
+        } else {
+            throw new IllegalArgumentException("Unsupported currency: " + currency);
+        }
+
+        // Validate denominations
+        for (int denomination : currentOperationDenominations.keySet()) {
+            if (!isValidDenomination(denomination, allowedDenominations)) {
+                throw new IllegalArgumentException("Invalid denomination for " + currency + ": " + denomination);
+            }
+        }
+    }
+    // Helper method to check if a denomination is valid
+    private boolean isValidDenomination(int denomination, int[] allowedDenominations) {
+        for (int allowed : allowedDenominations) {
+            if (denomination == allowed) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private Map<Currency, CashBalanceCurrency> createInitialBalances() {
