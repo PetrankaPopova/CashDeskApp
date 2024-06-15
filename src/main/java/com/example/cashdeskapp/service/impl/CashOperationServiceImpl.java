@@ -173,14 +173,14 @@ public class CashOperationServiceImpl implements OperationService {
             throw new IllegalArgumentException("Unsupported currency: " + currency);
         }
 
-        // Validate denominations
+
         for (int denomination : currentOperationDenominations.keySet()) {
             if (!isValidDenomination(denomination, allowedDenominations)) {
                 throw new IllegalArgumentException("Invalid denomination for " + currency + ": " + denomination);
             }
         }
     }
-    // Helper method to check if a denomination is valid
+
     private boolean isValidDenomination(int denomination, int[] allowedDenominations) {
         for (int allowed : allowedDenominations) {
             if (denomination == allowed) {
