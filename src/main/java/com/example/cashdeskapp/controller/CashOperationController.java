@@ -28,7 +28,7 @@ public class CashOperationController {
             throw new ApiKeyInvalidException("API key is invalid.");
         }
 
-        CashOperationDTO dto = operationService.performCashOperation(cashOperation);
+        CashOperationDTO dto = operationService.processCashOperation(cashOperation);
         return ResponseEntity.ok(dto);
     }
 
@@ -38,7 +38,7 @@ public class CashOperationController {
             throw new ApiKeyInvalidException("API key is invalid.");
         }
 
-        CashBalanceDTO cashBalanceDTO = operationService.retrieveCashBalance();
+        CashBalanceDTO cashBalanceDTO = operationService.fetchCashBalance();
         return ResponseEntity.ok(cashBalanceDTO);
     }
 }

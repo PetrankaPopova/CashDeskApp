@@ -19,7 +19,7 @@ import java.util.List;
 
 
 @ControllerAdvice
-public class CashDeskControllerAdvice {
+public class CashDeskErrorHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<List<String>> handleValidationExceptions(MethodArgumentNotValidException validationException) {
         List<String> validationErrors = new ArrayList<>();

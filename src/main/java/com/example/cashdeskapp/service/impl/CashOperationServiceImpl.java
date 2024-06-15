@@ -48,18 +48,18 @@ public class CashOperationServiceImpl implements OperationService {
     }
 
     @Override
-    public CashBalanceDTO retrieveCashBalance() throws IOException {
+    public CashBalanceDTO fetchCashBalance() throws IOException {
         CashBalanceDTO cashBalanceDTO = FileUtilsHelper.readLastBalance();
         return cashBalanceDTO;
     }
 
 
     @Override
-    public CashOperationDTO performCashOperation(CashOperationDTO cashOperationDTO) throws IOException {
+    public CashOperationDTO processCashOperation(CashOperationDTO cashOperationDTO) throws IOException {
         CashOperationType operation = cashOperationDTO.getType();
 
-        CashBalanceDTO balanceDTO = retrieveCashBalance();
-        performValidations(cashOperationDTO, balanceDTO);
+        CashBalanceDTO balanceDTO = fetchCashBalance();
+        validateOperations(cashOperationDTO, balanceDTO);
 
         if (operation.equals(CashOperationType.WITHDRAWAL)) {
             withdrawCash(cashOperationDTO, balanceDTO);
@@ -67,8 +67,8 @@ public class CashOperationServiceImpl implements OperationService {
             depositCash(cashOperationDTO, balanceDTO);
         }
 
-        FileUtilsHelper.writeCashBalance(balanceDTO);
-        FileUtilsHelper.writeCashOperation(cashOperationDTO);
+        FileUtilsHelper.recordCashBalance(balanceDTO);
+        FileUtilsHelper.recordCashOperation(cashOperationDTO);
 
         return cashOperationDTO;
     }
@@ -77,7 +77,7 @@ public class CashOperationServiceImpl implements OperationService {
     private void init() throws IOException {
         if (FileUtilsHelper.isCashBalanceFileEmpty()) {
             CashBalance initialBalance = new CashBalance().setBalance(createInitialBalances());
-            FileUtilsHelper.writeCashBalance(cashBalanceMapper.toCashBalanceDTO(initialBalance));
+            FileUtilsHelper.recordCashBalance(cashBalanceMapper.toCashBalanceDTO(initialBalance));
         }
     }
 
@@ -113,13 +113,13 @@ public class CashOperationServiceImpl implements OperationService {
         cashBalanceCurrency.setTotalBalance(totalBalance);
     }
 
-    private void performValidations(CashOperationDTO cashOperationDTO, CashBalanceDTO balanceDTO) {
+    private void validateOperations(CashOperationDTO cashOperationDTO, CashBalanceDTO balanceDTO) {
         validateBanknotesDenomination(cashOperationDTO);
-        validateNegativeBanknotesCount(cashOperationDTO);
-        validateSufficientBalance(cashOperationDTO, balanceDTO);
+        checkNegativeBanknotesCount(cashOperationDTO);
+        ensureFundsSufficiency(cashOperationDTO, balanceDTO);
     }
 
-    private void validateSufficientBalance(CashOperationDTO cashOperationDTO, CashBalanceDTO balanceDTO) {
+    private void ensureFundsSufficiency(CashOperationDTO cashOperationDTO, CashBalanceDTO balanceDTO) {
         if (cashOperationDTO.getType().equals(CashOperationType.WITHDRAWAL)) {
             Currency currency = cashOperationDTO.getCurrency();
             Map<Integer, Integer> currentOperationDenominations = cashOperationDTO.getDenomination();
@@ -150,7 +150,7 @@ public class CashOperationServiceImpl implements OperationService {
         }
     }
 
-    private void validateNegativeBanknotesCount(CashOperationDTO cashOperationDTO) {
+    private void checkNegativeBanknotesCount(CashOperationDTO cashOperationDTO) {
         Map<Integer, Integer> currentOperationDenominations = cashOperationDTO.getDenomination();
 
         for (Integer count : currentOperationDenominations.values()) {

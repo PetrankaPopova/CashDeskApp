@@ -10,7 +10,7 @@ public interface OperationService {
 
      boolean isApiKeyValid(String apiKey);
 
-    CashBalanceDTO retrieveCashBalance() throws IOException;
+    CashBalanceDTO fetchCashBalance() throws IOException;
 
-    CashOperationDTO performCashOperation(CashOperationDTO cashOperationDTO) throws IOException;
+    CashOperationDTO processCashOperation(CashOperationDTO cashOperationDTO) throws IOException;
 }

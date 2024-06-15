@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class MapperConfig {
+public class MapperConfiguration {
     @Bean
     public CashBalanceMapper cashBalanceMapper() {
         return new CashBalanceMapperImpl();

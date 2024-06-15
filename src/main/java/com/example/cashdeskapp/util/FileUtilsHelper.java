@@ -12,39 +12,39 @@ import java.time.LocalDateTime;
 
 public class FileUtilsHelper  {
 
-    private static final String CASH_BALANCES_FILE = "src/main/resources/cash_balances.txt";
-    private static final String CASH_OPERATIONS_FILE = "src/main/resources/cash_operations.txt";
-    private static final String TRANSACTION_FILE = "src/main/resources/transactions.txt";
+    private static final String BALANCES_CASH_FILE = "src/main/resources/cash_balances.txt";
+    private static final String OPERATIONS_CASH_FILE = "src/main/resources/cash_operations.txt";
+
     private static final Gson gson = new GsonBuilder()
             .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
             .setPrettyPrinting()
             .create();
 
-    public static void writeCashOperation(CashOperationDTO cashOperationDTO) throws IOException {
+    public static void recordCashOperation(CashOperationDTO cashOperationDTO) throws IOException {
         cashOperationDTO.setLocalDateTime(LocalDateTime.now());
-        try (FileWriter writer = new FileWriter(CASH_OPERATIONS_FILE, true)) {
+        try (FileWriter writer = new FileWriter(OPERATIONS_CASH_FILE, true)) {
             gson.toJson(cashOperationDTO, writer);
             writer.write(System.lineSeparator());
         } catch (IOException e) {
-            throw new IOException("Error writing to file: " + CASH_OPERATIONS_FILE, e);
+            throw new IOException("Error writing to file: " + OPERATIONS_CASH_FILE, e);
         }
     }
 
-    public static void writeCashBalance(CashBalanceDTO cashBalanceDTO) throws IOException {
+    public static void recordCashBalance(CashBalanceDTO cashBalanceDTO) throws IOException {
         cashBalanceDTO.setLocalDateTime(LocalDateTime.now());
-        try (FileWriter writer = new FileWriter(CASH_BALANCES_FILE, true)) {
+        try (FileWriter writer = new FileWriter(BALANCES_CASH_FILE, true)) {
             gson.toJson(cashBalanceDTO, writer);
             writer.write(System.lineSeparator());
         } catch (IOException e) {
-            throw new IOException("Error writing to file: " + CASH_BALANCES_FILE, e);
+            throw new IOException("Error writing to file: " + BALANCES_CASH_FILE, e);
         }
     }
 
     public static CashBalanceDTO readLastBalance() throws IOException {
-        File file = new File(CASH_BALANCES_FILE);
+        File file = new File(BALANCES_CASH_FILE);
 
          if (!file.exists() || file.length() == 0) {
-            throw new IOException("File is empty or does not exist: " + CASH_BALANCES_FILE);
+            throw new IOException("File is empty or does not exist: " + BALANCES_CASH_FILE);
         }
 
         try (RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r")) {
@@ -84,22 +84,17 @@ public class FileUtilsHelper  {
 
             return gson.fromJson(json, CashBalanceDTO.class);
         } catch (JsonSyntaxException e) {
-            throw new IOException("Error reading from file or parsing JSON: " + CASH_BALANCES_FILE, e);
+            throw new IOException("Error reading from file or parsing JSON: " + BALANCES_CASH_FILE, e);
         }
     }
 
     public static boolean isCashBalanceFileEmpty() throws IOException {
-        try (RandomAccessFile file = new RandomAccessFile(CASH_BALANCES_FILE, "r")) {
+        try (RandomAccessFile file = new RandomAccessFile(BALANCES_CASH_FILE, "r")) {
             return file.length() == 0;
         } catch (IOException e) {
-            throw new IOException("Error checking the file: " + CASH_BALANCES_FILE, e);
+            throw new IOException("Error checking the file: " + BALANCES_CASH_FILE, e);
         }
     }
-    public static void appendTransactionLog(String transactionDetails) throws IOException {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(TRANSACTION_FILE, true))) {
-            writer.write(transactionDetails);
-            writer.newLine();
-        }
-    }
+
 
 }

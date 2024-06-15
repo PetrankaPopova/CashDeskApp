@@ -15,5 +15,4 @@ public class CashOperation {
     private Currency currency;
     private BigDecimal amount;
     private Map<Integer, Integer> denomination;
-
 }
