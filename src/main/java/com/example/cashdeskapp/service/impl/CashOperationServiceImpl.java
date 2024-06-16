@@ -23,6 +23,10 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Service implementation for managing cash operations.
+ * Implements {@link OperationService}.
+ */
 @Service
 public class CashOperationServiceImpl implements OperationService {
 
@@ -32,28 +36,52 @@ public class CashOperationServiceImpl implements OperationService {
     private static final int[] ALLOWED_BGN_DENOMINATIONS = {5, 10, 20, 50, 100};
     private static final int[] ALLOWED_EUR_DENOMINATIONS = {5, 10, 20, 50, 100, 200, 500};
 
-
+    /**
+     * Constructor to initialize CashOperationServiceImpl.
+     *
+     * @param cashBalanceMapper The CashBalanceMapper for mapping CashBalance and CashBalanceDTO.
+     * @param denominations     The BanknotesDenominationsConfiguration for allowed banknote denominations.
+     * @param apiKey            The API key value injected from properties.
+     */
     @Autowired
     public CashOperationServiceImpl(CashBalanceMapper cashBalanceMapper,
                                     BanknotesDenominationsConfiguration denominations,
-                                    @Value("${api.key}") String apikey) {
+                                    @Value("${api.key}") String apiKey) {
         this.cashBalanceMapper = cashBalanceMapper;
         this.denominations = denominations;
-        this.apiKey = apikey;
+        this.apiKey = apiKey;
     }
 
+    /**
+     * Validates the API key.
+     *
+     * @param apiKey The API key to validate.
+     * @return true if the API key is valid, false otherwise.
+     */
     @Override
     public boolean isApiKeyValid(String apiKey) {
         return this.apiKey.equals(apiKey);
     }
 
+    /**
+     * Retrieves the current cash balance.
+     *
+     * @return The CashBalanceDTO representing the current cash balance.
+     * @throws IOException if there's an error reading the cash balance.
+     */
     @Override
     public CashBalanceDTO fetchCashBalance() throws IOException {
         CashBalanceDTO cashBalanceDTO = FileUtilsHelper.readLastBalance();
         return cashBalanceDTO;
     }
 
-
+    /**
+     * Processes a cash operation based on the provided CashOperationDTO.
+     *
+     * @param cashOperationDTO The CashOperationDTO containing the operation details.
+     * @return The processed CashOperationDTO.
+     * @throws IOException if there's an error recording the operation.
+     */
     @Override
     public CashOperationDTO processCashOperation(CashOperationDTO cashOperationDTO) throws IOException {
         CashOperationType operation = cashOperationDTO.getType();
@@ -73,6 +101,11 @@ public class CashOperationServiceImpl implements OperationService {
         return cashOperationDTO;
     }
 
+    /**
+     * Initializes the cash balance if the file is empty.
+     *
+     * @throws IOException if there's an error reading or writing the cash balance file.
+     */
     @PostConstruct
     private void init() throws IOException {
         if (FileUtilsHelper.isCashBalanceFileEmpty()) {
@@ -81,7 +114,12 @@ public class CashOperationServiceImpl implements OperationService {
         }
     }
 
-
+    /**
+     * Deposits cash into the balance based on the operation details.
+     *
+     * @param cashOperationDTO The CashOperationDTO containing deposit details.
+     * @param balanceDTO       The current CashBalanceDTO.
+     */
     private void depositCash(CashOperationDTO cashOperationDTO, CashBalanceDTO balanceDTO) {
         CashBalanceCurrencyDTO cashBalanceCurrency = balanceDTO.getBalance().get(cashOperationDTO.getCurrency());
 
@@ -98,6 +136,12 @@ public class CashOperationServiceImpl implements OperationService {
         cashBalanceCurrency.setTotalBalance(totalBalance);
     }
 
+    /**
+     * Withdraws cash from the balance based on the operation details.
+     *
+     * @param cashOperationDTO The CashOperationDTO containing withdrawal details.
+     * @param balanceDTO       The current CashBalanceDTO.
+     */
     private void withdrawCash(CashOperationDTO cashOperationDTO, CashBalanceDTO balanceDTO) {
         CashBalanceCurrencyDTO cashBalanceCurrency = balanceDTO.getBalance().get(cashOperationDTO.getCurrency());
         BigDecimal totalBalance = cashBalanceCurrency.getTotalBalance();
@@ -113,12 +157,24 @@ public class CashOperationServiceImpl implements OperationService {
         cashBalanceCurrency.setTotalBalance(totalBalance);
     }
 
+    /**
+     * Validates the operations based on the cash operation details.
+     *
+     * @param cashOperationDTO The CashOperationDTO containing operation details.
+     * @param balanceDTO       The current CashBalanceDTO.
+     */
     private void validateOperations(CashOperationDTO cashOperationDTO, CashBalanceDTO balanceDTO) {
         validateBanknotesDenomination(cashOperationDTO);
         checkNegativeBanknotesCount(cashOperationDTO);
         ensureFundsSufficiency(cashOperationDTO, balanceDTO);
     }
 
+    /**
+     * Ensures that there are sufficient funds for withdrawal operations.
+     *
+     * @param cashOperationDTO The CashOperationDTO containing withdrawal details.
+     * @param balanceDTO       The current CashBalanceDTO.
+     */
     private void ensureFundsSufficiency(CashOperationDTO cashOperationDTO, CashBalanceDTO balanceDTO) {
         if (cashOperationDTO.getType().equals(CashOperationType.WITHDRAWAL)) {
             Currency currency = cashOperationDTO.getCurrency();
@@ -150,6 +206,11 @@ public class CashOperationServiceImpl implements OperationService {
         }
     }
 
+    /**
+     * Checks for negative banknotes count in the operation details.
+     *
+     * @param cashOperationDTO The CashOperationDTO containing operation details.
+     */
     private void checkNegativeBanknotesCount(CashOperationDTO cashOperationDTO) {
         Map<Integer, Integer> currentOperationDenominations = cashOperationDTO.getDenomination();
 
@@ -160,6 +221,11 @@ public class CashOperationServiceImpl implements OperationService {
         }
     }
 
+    /**
+     * Validates banknote denominations for the given operation.
+     *
+     * @param cashOperationDTO The CashOperationDTO containing operation details.
+     */
     private void validateBanknotesDenomination(CashOperationDTO cashOperationDTO) {
         String currency = String.valueOf(cashOperationDTO.getCurrency());
         Map<Integer, Integer> currentOperationDenominations = cashOperationDTO.getDenomination();
@@ -173,7 +239,6 @@ public class CashOperationServiceImpl implements OperationService {
             throw new IllegalArgumentException("Unsupported currency: " + currency);
         }
 
-
         for (int denomination : currentOperationDenominations.keySet()) {
             if (!isValidDenomination(denomination, allowedDenominations)) {
                 throw new IllegalArgumentException("Invalid denomination for " + currency + ": " + denomination);
@@ -181,6 +246,13 @@ public class CashOperationServiceImpl implements OperationService {
         }
     }
 
+    /**
+     * Checks if the provided denomination is valid for the given currency.
+     *
+     * @param denomination         The denomination to check.
+     * @param allowedDenominations The array of allowed denominations for the currency.
+     * @return true if the denomination is valid, false otherwise.
+     */
     private boolean isValidDenomination(int denomination, int[] allowedDenominations) {
         for (int allowed : allowedDenominations) {
             if (denomination == allowed) {
@@ -190,6 +262,11 @@ public class CashOperationServiceImpl implements OperationService {
         return false;
     }
 
+    /**
+     * Creates initial cash balances for supported currencies (BGN and EUR).
+     *
+     * @return A map containing initial CashBalanceCurrency objects for BGN and EUR.
+     */
     private Map<Currency, CashBalanceCurrency> createInitialBalances() {
         Map<Currency, CashBalanceCurrency> balances = new HashMap<>();
 
@@ -199,6 +276,11 @@ public class CashOperationServiceImpl implements OperationService {
         return balances;
     }
 
+    /**
+     * Creates initial cash balance for Bulgarian Lev (BGN).
+     *
+     * @return A CashBalanceCurrency object representing the initial BGN balance.
+     */
     private CashBalanceCurrency createBGNBalance() {
         CashBalanceCurrency bgnBalance = new CashBalanceCurrency();
         bgnBalance.setTotalBalance(BigDecimal.valueOf(1000));
@@ -212,6 +294,11 @@ public class CashOperationServiceImpl implements OperationService {
         return bgnBalance;
     }
 
+    /**
+     * Creates initial cash balance for Euro (EUR).
+     *
+     * @return A CashBalanceCurrency object representing the initial EUR balance.
+     */
     private CashBalanceCurrency createEURBalance() {
         CashBalanceCurrency eurBalance = new CashBalanceCurrency();
         eurBalance.setTotalBalance(BigDecimal.valueOf(2000));
